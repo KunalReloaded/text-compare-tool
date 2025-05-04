@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Comparison Tool</title>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.1/pizzip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.20.0/docxtemplater.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsPDF/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Text Comparison Tool</h1>
+
+    <div class="top-controls">
+        <div id="indianTime"></div>
+        <div class="actions">
+            <button id="compareBtn">Compare Texts</button>
+            <button id="saveResult">Save Result</button>
+            <button id="clearAllBtn">Clear All</button>
+        </div>
+    </div>
+
+    <div class="file-input">
+        <input type="file" id="fileInput1" onchange="handleFileUpload(1)">
+        <input type="file" id="fileInput2" onchange="handleFileUpload(2)">
+    </div>
+
+    <div class="text-boxes">
+        <textarea id="text1" placeholder="Enter first text"></textarea>
+        <textarea id="text2" placeholder="Enter second text"></textarea>
+    </div>
+
+    <div class="counts">
+        <div id="keystrokesCount">Keystrokes: 0 + 0 = 0</div>
+        <div id="spacesCount">Spaces: 0 + 0 = 0</div>
+        <div id="entersCount">Enters: 0 + 0 = 0</div>
+        <div id="wordsCount">Words: 0 + 0 = 0</div>
+        <div id="lettersCount">Letters: 0 + 0 = 0</div>
+    </div>
+
+    <div class="stopwatch">
+        <h2>Live Timer:</h2>
+        <p id="liveTime">00:00:00</p>
+        <button onclick="startTimer()">Start Timer</button>
+        <button onclick="pauseTimer()">Pause Timer</button>
+        <button onclick="resetTimer()">Reset Timer</button>
+    </div>
+
+    <h2>Comparison Result:</h2>
+    <div id="comparisonResult"></div>
+
+    <div>
+        <label for="fileFormat">Select File Format:</label>
+        <select id="fileFormat">
+            <option value="txt">TXT</option>
+            <option value="pdf">PDF</option>
+            <option value="docx">DOCX</option>
+        </select>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
