@@ -267,15 +267,12 @@
         const comparisonResult = document.getElementById("comparisonResult").innerText;
         const format = document.getElementById("fileFormat").value;
 
-        const dateTime = new Date().toLocaleString();
-
         const featureData = `
 Keystrokes: ${keystrokes1} + ${keystrokes2} = ${keystrokes1 + keystrokes2}
 Spaces: ${spaces1} + ${spaces2} = ${spaces1 + spaces2}
 Enters: ${enters1} + ${enters2} = ${enters1 + enters2}
 Words: ${words1} + ${words2} = ${words1 + words2}
 Letters: ${letters1} + ${letters2} = ${letters1 + letters2}
-Date and Time: ${dateTime}
 `;
 
         const finalResult = `${featureData}\n\nComparison Results:\n${comparisonResult}`;
@@ -293,7 +290,7 @@ Date and Time: ${dateTime}
         } else if (format === "docx") {
             // DOCX generation logic with template
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', 'https://path-to-your-template/template.docx', true); // Replace with actual DOCX template URL
+            xhr.open('GET', 'path-to-your-template/template.docx', true);
             xhr.responseType = 'arraybuffer';
             xhr.onload = function () {
                 const zip = new PizZip(xhr.response);
