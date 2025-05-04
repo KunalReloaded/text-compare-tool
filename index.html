@@ -4,113 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Text Comparison Tool</title>
-
-    <!-- External Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.1/pizzip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.20.0/docxtemplater.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsPDF/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.2/mammoth.browser.min.js"></script>
-
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #87CEEB; /* Skyblue background */
+            background-color: #87CEEB;
             margin: 0;
             padding: 0;
         }
-
         .container {
             max-width: 1200px;
-            width: 80%;
             margin: 20px auto;
             background-color: #fff;
             padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-
-        h1 {
-            text-align: center;
-        }
-
-        .top-controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        #indianTime {
-            font-size: 16px;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #4CAF50;
-            color: white;
-        }
-
-        .text-boxes {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .text-boxes textarea {
+        h1, h2 { text-align: center; }
+        textarea {
             width: 48%;
             height: 150px;
-            padding: 10px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            resize: none;
             margin: 0 1%;
-        }
-
-        .counts {
-            margin-bottom: 20px;
             padding: 10px;
-            background-color: #f9f9f9;
-            border-radius: 5px;
+            resize: none;
         }
-
-        .counts div {
-            margin: 10px 0;
-        }
-
-        .stopwatch {
-            text-align: center;
-            margin-bottom: 20px;
-            background-color: #f1f1f1;
-            padding: 20px;
-            border-radius: 5px;
-            font-size: 18px;
-        }
-
-        .actions {
+        .text-boxes, .top-controls, .actions {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            margin-bottom: 20px;
         }
-
-        select {
-            padding: 10px;
-            font-size: 16px;
-        }
-
-        #comparisonResult {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
+        .counts, .stopwatch, #comparisonResult {
             background-color: #f9f9f9;
+            padding: 10px;
             border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -118,17 +50,16 @@
 
 <div class="container">
     <h1>Text Comparison Tool</h1>
-
     <div class="top-controls">
         <div id="indianTime"></div>
         <div class="actions">
-            <button id="compareBtn">Compare Texts</button>
-            <button id="saveResult">Save Result</button>
-            <button id="clearAllBtn">Clear All</button>
+            <button onclick="compareTexts()">Compare Texts</button>
+            <button onclick="saveResult()">Save Result</button>
+            <button onclick="clearAll()">Clear All</button>
         </div>
     </div>
 
-    <div class="file-input">
+    <div>
         <input type="file" id="fileInput1" onchange="handleFileUpload(1)">
         <input type="file" id="fileInput2" onchange="handleFileUpload(2)">
     </div>
@@ -147,168 +78,107 @@
     </div>
 
     <div class="stopwatch">
-        <h2>Live Timer:</h2>
+        <h2>Live Timer</h2>
         <p id="liveTime">00:00:00</p>
-        <button onclick="startTimer()">Start Timer</button>
-        <button onclick="pauseTimer()">Pause Timer</button>
-        <button onclick="resetTimer()">Reset Timer</button>
+        <button onclick="startTimer()">Start</button>
+        <button onclick="pauseTimer()">Pause</button>
+        <button onclick="resetTimer()">Reset</button>
     </div>
 
-    <h2>Comparison Result:</h2>
+    <h2>Comparison Result</h2>
     <div id="comparisonResult"></div>
 
     <div>
-        <label for="fileFormat">Select File Format:</label>
+        <label for="fileFormat">Select Format:</label>
         <select id="fileFormat">
             <option value="txt">TXT</option>
             <option value="pdf">PDF</option>
-            <option value="docx">DOCX</option>
         </select>
     </div>
 </div>
 
 <script>
-    let keystrokes1 = 0, keystrokes2 = 0;
-    let spaces1 = 0, spaces2 = 0;
-    let enters1 = 0, enters2 = 0;
-    let words1 = 0, words2 = 0;
-    let letters1 = 0, letters2 = 0;
+    // Clock
+    setInterval(() => {
+        document.getElementById("indianTime").innerText = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+    }, 1000);
 
+    let keystrokes1 = 0, keystrokes2 = 0;
     let text1 = "", text2 = "";
 
-    document.addEventListener("DOMContentLoaded", function () {
-        updateIndianTime();
+    document.getElementById("text1").addEventListener("keydown", (e) => handleKeystroke(e, 1));
+    document.getElementById("text2").addEventListener("keydown", (e) => handleKeystroke(e, 2));
+    document.getElementById("text1").addEventListener("input", updateStats);
+    document.getElementById("text2").addEventListener("input", updateStats);
 
-        // Track keystrokes, spaces, enters
-        document.getElementById("text1").addEventListener("keydown", (e) => handleKeystroke(e, 1));
-        document.getElementById("text2").addEventListener("keydown", (e) => handleKeystroke(e, 2));
-
-        // Track changes for stats (word/letter count)
-        document.getElementById("text1").addEventListener("input", updateStats);
-        document.getElementById("text2").addEventListener("input", updateStats);
-
-        document.getElementById("compareBtn").addEventListener("click", compareTexts);
-        document.getElementById("saveResult").addEventListener("click", saveResult);
-        document.getElementById("clearAllBtn").addEventListener("click", clearAll);
-    });
-
-    function handleKeystroke(event, index) {
-        if (index === 1) {
-            keystrokes1++;
-            if (event.key === " ") spaces1++;
-            if (event.key === "Enter") enters1++;
-        } else {
-            keystrokes2++;
-            if (event.key === " ") spaces2++;
-            if (event.key === "Enter") enters2++;
-        }
+    function handleKeystroke(e, index) {
+        if (index === 1) keystrokes1++;
+        else keystrokes2++;
         updateStats();
-    }
-
-    function updateIndianTime() {
-        setInterval(() => {
-            document.getElementById("indianTime").innerText = new Date().toLocaleString("en-IN", {
-                timeZone: "Asia/Kolkata"
-            });
-        }, 1000);
     }
 
     function updateStats() {
         text1 = document.getElementById("text1").value;
         text2 = document.getElementById("text2").value;
 
-        // Count only actual space characters (not \n or tab)
-        spaces1 = (text1.match(/ /g) || []).length;
-        spaces2 = (text2.match(/ /g) || []).length;
+        const stats = (txt) => ({
+            spaces: (txt.match(/ /g) || []).length,
+            enters: (txt.match(/\n/g) || []).length,
+            words: txt.trim().split(/\s+/).filter(Boolean).length,
+            letters: txt.replace(/[^a-zA-Z\u0900-\u097F]/g, "").length
+        });
 
-        words1 = text1.trim().split(/\s+/).filter(Boolean).length;
-        words2 = text2.trim().split(/\s+/).filter(Boolean).length;
-
-        letters1 = text1.replace(/[^a-zA-Z\u0900-\u097F]/g, "").length;
-        letters2 = text2.replace(/[^a-zA-Z\u0900-\u097F]/g, "").length;
+        const s1 = stats(text1);
+        const s2 = stats(text2);
 
         document.getElementById("keystrokesCount").innerText = `Keystrokes: ${keystrokes1} + ${keystrokes2} = ${keystrokes1 + keystrokes2}`;
-        document.getElementById("spacesCount").innerText = `Spaces: ${spaces1} + ${spaces2} = ${spaces1 + spaces2}`;
-        document.getElementById("entersCount").innerText = `Enters: ${enters1} + ${enters2} = ${enters1 + enters2}`;
-        document.getElementById("wordsCount").innerText = `Words: ${words1} + ${words2} = ${words1 + words2}`;
-        document.getElementById("lettersCount").innerText = `Letters: ${letters1} + ${letters2} = ${letters1 + letters2}`;
+        document.getElementById("spacesCount").innerText = `Spaces: ${s1.spaces} + ${s2.spaces} = ${s1.spaces + s2.spaces}`;
+        document.getElementById("entersCount").innerText = `Enters: ${s1.enters} + ${s2.enters} = ${s1.enters + s2.enters}`;
+        document.getElementById("wordsCount").innerText = `Words: ${s1.words} + ${s2.words} = ${s1.words + s2.words}`;
+        document.getElementById("lettersCount").innerText = `Letters: ${s1.letters} + ${s2.letters} = ${s1.letters + s2.letters}`;
     }
 
     function compareTexts() {
-        const text1Arr = text1.split(/\n+/);
-        const text2Arr = text2.split(/\n+/);
+        const lines1 = text1.split(/\n+/);
+        const lines2 = text2.split(/\n+/);
+        const max = Math.max(lines1.length, lines2.length);
         let result = "";
 
-        const maxLen = Math.max(text1Arr.length, text2Arr.length);
-        for (let i = 0; i < maxLen; i++) {
-            let paragraph1 = text1Arr[i] || "";
-            let paragraph2 = text2Arr[i] || "";
-
-            const words1 = paragraph1.split(/\s+/);
-            const words2 = paragraph2.split(/\s+/);
-            let paragraphResult = `<strong>Paragraph ${i + 1}:</strong><br>`;
-
-            const maxWords = Math.max(words1.length, words2.length);
+        for (let i = 0; i < max; i++) {
+            const w1 = (lines1[i] || "").split(/\s+/);
+            const w2 = (lines2[i] || "").split(/\s+/);
+            result += `<strong>Paragraph ${i+1}:</strong><br>`;
+            const maxWords = Math.max(w1.length, w2.length);
             for (let j = 0; j < maxWords; j++) {
-                if (!words1[j] && words2[j]) {
-                    paragraphResult += `<span style="color: gray;">[MISSING]</span> <span style="color: green;">[${words2[j]}]</span> `;
-                } else if (words1[j] && !words2[j]) {
-                    paragraphResult += `<span style="color: red;">[${words1[j]}]</span> <span style="color: gray;">[MISSING]</span> `;
-                } else if (words1[j] !== words2[j]) {
-                    paragraphResult += `<span style="color: red;">[${words1[j]}]</span> <span style="color: green;">[${words2[j]}]</span> `;
-                }
+                if (!w1[j]) result += `<span style="color:gray;">[MISSING]</span> <span style="color:green;">[${w2[j]}]</span> `;
+                else if (!w2[j]) result += `<span style="color:red;">[${w1[j]}]</span> <span style="color:gray;">[MISSING]</span> `;
+                else if (w1[j] !== w2[j]) result += `<span style="color:red;">[${w1[j]}]</span> <span style="color:green;">[${w2[j]}]</span> `;
             }
-            result += paragraphResult + "<br><br>";
+            result += "<br><br>";
         }
+
         document.getElementById("comparisonResult").innerHTML = result;
     }
 
     function saveResult() {
-        const comparisonResult = document.getElementById("comparisonResult").innerText;
         const format = document.getElementById("fileFormat").value;
+        const resultText = document.getElementById("comparisonResult").innerText;
 
-        const featureData = `
-Keystrokes: ${keystrokes1} + ${keystrokes2} = ${keystrokes1 + keystrokes2}
-Spaces: ${spaces1} + ${spaces2} = ${spaces1 + spaces2}
-Enters: ${enters1} + ${enters2} = ${enters1 + enters2}
-Words: ${words1} + ${words2} = ${words1 + words2}
-Letters: ${letters1} + ${letters2} = ${letters1 + letters2}
-`;
-
-        const finalResult = `${featureData}\n\nComparison Results:\n${comparisonResult}`;
+        const finalText = `
+Keystrokes: ${keystrokes1 + keystrokes2}
+Comparison Results:
+${resultText}
+        `;
 
         if (format === "txt") {
-            const blob = new Blob([finalResult], { type: 'text/plain' });
-            saveAs(blob, "comparison_result.txt");
+            const blob = new Blob([finalText], { type: 'text/plain' });
+            saveAs(blob, "comparison.txt");
         } else if (format === "pdf") {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.setFontSize(10);
-            const lines = doc.splitTextToSize(finalResult, 180);
+            const lines = doc.splitTextToSize(finalText, 180);
             doc.text(lines, 10, 10);
-            doc.save("comparison_result.pdf");
-        } else if (format === "docx") {
-            // DOCX generation logic with template
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', 'path-to-your-template/template.docx', true);
-            xhr.responseType = 'arraybuffer';
-            xhr.onload = function () {
-                const zip = new PizZip(xhr.response);
-                const doc = new Docxtemplater(zip);
-
-                doc.setData({
-                    text: finalResult
-                });
-
-                try {
-                    doc.render();
-                    const out = doc.getZip().generate({ type: "blob" });
-                    saveAs(out, "comparison_result.docx");
-                } catch (e) {
-                    console.error("Error rendering DOCX:", e);
-                }
-            };
-            xhr.send();
+            doc.save("comparison.pdf");
         }
     }
 
@@ -316,7 +186,59 @@ Letters: ${letters1} + ${letters2} = ${letters1 + letters2}
         document.getElementById("text1").value = "";
         document.getElementById("text2").value = "";
         document.getElementById("comparisonResult").innerHTML = "";
+        keystrokes1 = keystrokes2 = 0;
         updateStats();
+    }
+
+    // File Upload
+    function handleFileUpload(index) {
+        const input = document.getElementById(`fileInput${index}`);
+        const file = input.files[0];
+        if (!file) return;
+
+        if (file.name.endsWith(".docx")) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                mammoth.extractRawText({ arrayBuffer: e.target.result })
+                    .then(result => {
+                        document.getElementById(`text${index}`).value = result.value;
+                        updateStats();
+                    });
+            };
+            reader.readAsArrayBuffer(file);
+        } else {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById(`text${index}`).value = e.target.result;
+                updateStats();
+            };
+            reader.readAsText(file);
+        }
+    }
+
+    // Timer
+    let timerInterval, elapsed = 0;
+
+    function startTimer() {
+        if (timerInterval) return;
+        const start = Date.now() - elapsed;
+        timerInterval = setInterval(() => {
+            elapsed = Date.now() - start;
+            const time = new Date(elapsed).toISOString().substr(11, 8);
+            document.getElementById("liveTime").innerText = time;
+        }, 1000);
+    }
+
+    function pauseTimer() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        elapsed = 0;
+        document.getElementById("liveTime").innerText = "00:00:00";
     }
 </script>
 
