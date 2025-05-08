@@ -340,34 +340,55 @@
       document.getElementById("comparisonResult").innerHTML = result;
     }
 
-    function saveResult() {
-      const comparisonResult = document.getElementById("comparisonResult").innerText;
-      const format = document.getElementById("fileFormat").value;
-      const stats = `
+   function saveResult() {
+  const comparisonResult = document.getElementById("comparisonResult").innerText;
+  const format = document.getElementById("fileFormat").value;
+  const stats = `
 Keystrokes: ${keystrokes1} + ${keystrokes2} = ${keystrokes1 + keystrokes2}
 Spaces: ${spaces1} + ${spaces2} = ${spaces1 + spaces2}
 Enters: ${enters1} + ${enters2} = ${enters1 + enters2}
 Words: ${words1} + ${words2} = ${words1 + words2}
 Letters: ${letters1} + ${letters2} = ${letters1 + letters2}
 `;
-      const finalResult = `${stats}\n\nComparison Results:\n${comparisonResult}`;
+  const finalResult = `${stats}\n\nComparison Results:\n${comparisonResult}`;
 
-      if (format === "txt") {
-        const blob = new Blob([finalResult], { type: 'text/plain' });
-        saveAs(blob, "comparison_result.txt");
-      } else if (format === "pdf") {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const lines = doc.splitTextToSize(finalResult, 180);
-        doc.text(lines, 10, 10);
-        doc.save("comparison_result.pdf");
-      } else if (format === "docx") {
-        const blob = new Blob([finalResult], {
-          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        });
-        saveAs(blob, "comparison_result.docx");
+  if (format === "txt") {
+    const blob = new Blob([finalResult], { type: 'text/plain' });
+    saveAs(blob, "comparison_result.txt");
+  } else if (format === "pdf") {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+    const margin = 10;
+    const pageHeight = 297;
+    const usableWidth = 190; // 210 - 2*10 margin
+    const usableHeight = 277; // 297 - 2*10 margin
+    const lineHeight = 7;
+
+    const lines = doc.splitTextToSize(finalResult, usableWidth);
+    let cursorY = margin;
+
+    lines.forEach((line) => {
+      if (cursorY + lineHeight > pageHeight - margin) {
+        doc.addPage();
+        cursorY = margin;
       }
-    }
+      doc.text(line, margin, cursorY);
+      cursorY += lineHeight;
+    });
+
+    doc.save("comparison_result.pdf");
+  } else if (format === "docx") {
+    const blob = new Blob([finalResult], {
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+    saveAs(blob, "comparison_result.docx");
+  }
+}
 
     function clearAll() {
       document.getElementById("text1").value = "";
